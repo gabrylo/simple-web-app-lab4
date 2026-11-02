@@ -1,0 +1,59 @@
+name: CI/CD Pipeline
+
+# d) Automatyczne uruchamianie po każdej aktualizacji kodu (push) w repozytorium
+on:
+  push:
+    branches: [ "main", "master" ]
+
+jobs:
+  # b) Etap 1: Build (Budowanie)
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Pobierz kod źródłowy
+        uses: actions/checkout@v4
+
+      - name: Konfiguracja środowiska Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Instalacja zależności
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+  # b) Etap 2: Test (Testowanie)
+  test:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Pobierz kod źródłowy
+        uses: actions/checkout@v4
+
+      - name: Konfiguracja Pythona
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Instalacja zależności
+        run: pip install -r requirements.txt
+
+      - name: Uruchomienie testów (sprawdzenie endpointu health)
+        run: |
+          python app.py &
+          sleep 3
+          curl --fail http://localhost:5000/health
+
+  # b) i c) Etap 3: Deploy (Automatyczne wdrożenie na środowisko testowe)
+  deploy-to-staging:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Pobierz kod źródłowy
+        uses: actions/checkout@v4
+
+      - name: Symulacja wdrożenia na środowisko testowe (Staging)
+        run: |
+          echo "Rozpoczynanie wdrażania aplikacji na środowisko testowe..."
+          echo "Aplikacja została pomyślnie wdrożona i jest gotowa do użytku!"
