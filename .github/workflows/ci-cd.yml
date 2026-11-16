@@ -57,3 +57,41 @@ jobs:
         run: |
           echo "Rozpoczynanie wdrażania aplikacji na środowisko testowe..."
           echo "Aplikacja została pomyślnie wdrożona i jest gotowa do użytku!"
+
+  integration-tests:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: user
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: testdb
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Pobierz kod źródłowy
+        uses: actions/checkout@v4
+
+      - name: Konfiguracja Pythona
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Instalacja zależności
+        run: |
+          pip install -r requirements.txt
+          pip install pytest requests
+
+      - name: Uruchomienie testów (np. pytest)
+        env:
+          DB_HOST: localhost
+        run: |
+          #  testy integracyjne sprawdzające np. połączenie z bazą
+          pytest -v

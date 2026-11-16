@@ -1,0 +1,43 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: web-app-config
+data:
+  APP_ENV: "production"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-app-deployment
+spec:
+  replicas: 2 # Uruchomienie 2 instancji aplikacji dla wysokiej dostępności
+  selector:
+    matchLabels:
+      app: web-app
+  template:
+    metadata:
+      labels:
+        app: web-app
+    spec:
+      containers:
+      - name: web
+        image: simple-web-app:latest # Nazwa Twojego obrazu Dockera
+        ports:
+        - containerPort: 5000
+        envFrom:
+        - configMapRef:
+            name: web-app-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-app-service
+spec:
+  type: NodePort # Udostępnia usługę na zewnątrz klastra
+  selector:
+    app: web-app
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 5000
+      nodePort: 30007
