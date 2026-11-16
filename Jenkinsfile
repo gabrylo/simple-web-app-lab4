@@ -1,27 +1,34 @@
 pipeline {
     agent any
-    
+
     stages {
         stage('Pobranie kodu') {
             steps {
-                // Pobiera kod z GitHuba
                 checkout scm
             }
         }
-        
+
         stage('Budowanie') {
             steps {
-                sh 'python -m pip install --upgrade pip'
-                sh 'pip install -r requirements.txt'
+                sh '''
+                    python3 -m venv venv
+                    . venv/bin/activate
+                    pip install --upgrade pip
+                    pip install -r requirements.txt
+                    pip install pytest requests
+                '''
             }
         }
-        
+
         stage('Testy jednostkowe') {
             steps {
-                sh 'pytest -v'
+                sh '''
+                    . venv/bin/activate
+                    pytest -v
+                '''
             }
         }
-        
+
         stage('Wdrożenie testowe') {
             steps {
                 echo 'Wdrażanie aplikacji na środowisko testowe...'
